@@ -1,5 +1,4 @@
 name: Build AKUN IPA
-
 on:
   push:
     branches: [ main, master ]
@@ -34,9 +33,9 @@ jobs:
           (cd ios/App && pod install) || true
           npx cap sync ios
           cd ios/App && xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO CONFIGURATION_BUILD_DIR=build build
-          mkdir -p ios/App/build/Payload
-          cp -r ios/App/build/App.app ios/App/build/Payload/
-          cd ios/App/build && zip -r AKUN.ipa Payload/
+          mkdir -p build/Payload
+          cp -r build/App.app build/Payload/
+          cd build && zip -r AKUN.ipa Payload/
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
