@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title size="large">提取</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-top">
+  <div class="page-header">
+    <h1>提取文件</h1>
+    <p>从 ZIP / IPA 压缩包中提取文件</p>
+  </div>
+
+  <!-- 选择文件 -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 40px; height: 40px; border-radius: 20px; background: rgba(0,122,255,0.15); display: flex; align-items: center; justify-content: center;">
+        <ion-icon name="archive-outline" style="font-size: 20px; color: #007aff;"></ion-icon>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--ion-text-color);">选择压缩文件</div>
+        <div style="font-size: 12px; color: var(--ion-color-medium);" *ngIf="selectedFileName">已选择: {{ selectedFileName }}</div>
+        <div style="font-size: 12px; color: var(--ion-color-medium);" *ngIf="!selectedFileName">支持 .zip / .ipa 格式</div>
+      </div>
+      <ion-button fill="outline" size="small" (click)="selectZip()" style="--border-radius: 20px; font-weight: 600;">
+        {{ selectedFileName ? '更换' : '选择文件' }}
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- 操作按钮 -->
+  <div style="padding: 0 20px 16px; display: flex; gap: 10px;" *ngIf="selectedFileName">
+    <ion-button expand="block" class="ios-btn" color="primary" style="flex:1" [disabled]="extracting" (click)="extractZip()">
+      <ion-icon name="file-tray-full-outline" slot="start"></ion-icon>
+      {{ extracting ? '提取中...' : '开始提取' }}
+    </ion-button>
+    <ion-button expand="block" class="ios-btn" color="medium" style="flex:1" (click)="clearExtract()">
+      <ion-icon name="close-outline" slot="start"></ion-icon>
+      清空
+    </ion-button>
+  </div>
+
+  <!-- 提取进度 -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;" *ngIf="extracting">
+    <h3 style="font-size: 15px; font-weight: 600; margin: 0 0 12px 0;">提取进度</h3>
+    <div style="max-width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden;">
+      <div style="height: 100%; width: {{ extractProgress }}%; background: linear-gradient(90deg, #007aff, #34c759); border-radius: 3px; transition: width 0.5s;"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--ion-color-medium);">
+      <span>{{ extractStatus }}</span>
+      <span>{{ extractProgress }}%</span>
+    </div>
+  </div>
+
+  <!-- 提取结果 -->
+  <div *ngIf="extractedItems.length > 0" style="padding: 0 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h3 style="font-size: 13px; font-weight: 600; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; margin: 0;">提取结果 ({{ extractedItems.length }} 项)</h3>
+      <ion-button fill="outline" size="small" (click)="importAll()" style="--border-radius: 20px; font-weight: 600;">
+        <ion-icon name="download-outline" slot="start"></ion-icon>
+        导入全部
+      </ion-button>
+    </div>
+
+    <ion-list lines="none">
+      <ng-template ngFor let-item [ngForOf]="extractedItems" let-i="index">
+        <!-- 文件夹 -->
+        <div class="file-item" *ngIf="item.isDir" (click)="toggleExpand(item)" style="cursor: pointer;">
+          <div class="file-icon" style="background: rgba(0,122,255,0.12); color: #007aff;">
+            <ion-icon [name]="item.expanded ? 'folder-open-outline' : 'folder-outline'"></ion-icon>
+          </div>
+          <div class="file-info">
+            <div class="name">{{ item.name }}</div>
+            <div class="meta">文件夹</div>
+          </div>
+          <div class="file-action">
+            <ion-icon [name]="item.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'" color="medium"></ion-icon>
+          </div>
+        </div>
+
+        <!-- 子文件（展开时） -->
+        <ng-template ngFor let-child [ngForOf]="item.children" let-j="index">
+          <div class="file-item" *ngIf="item.expanded" style="padding-left: 40px;">
+            <div class="file-icon" [style.background]="child.isDir ? 'rgba(0,122,255,0.12)' : 'rgba(0,122,255,0.08)'" [style.color]="child.isDir ? '#007aff' : '#007aff'">
+              <ion-icon [name]="child.isDir ? 'folder-outline' : 'document-outline'"></ion-icon>
+            </div>
+            <div class="file-info">
+              <div class="name">{{ child.name }}</div>
+              <div class="meta" *ngIf="!child.isDir">{{ child.size }}</div>
+              <div class="meta" *ngIf="child.isDir">文件夹</div>
+            </div>
+            <div class="file-action" *ngIf="!child.isDir">
+              <ion-button fill="clear" size="small" (click)="importItem(child); $event.stopPropagation()">
+                <ion-icon name="download-outline" slot="icon-only" color="primary"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ng-template>
+      </ng-template>
+    </ion-list>
+  </div>
+</ion-content>

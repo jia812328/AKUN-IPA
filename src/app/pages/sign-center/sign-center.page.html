@@ -1,0 +1,141 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title size="large">签名</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-top" style="--padding-bottom: 100px;">
+  <div class="page-header">
+    <h1>签名中心</h1>
+    <p>使用 Apple ID 签名 IPA 文件</p>
+  </div>
+
+  <!-- 快捷操作 -->
+  <div style="padding: 0 20px 16px; display: flex; gap: 10px;">
+    <ion-button expand="block" class="ios-btn" color="primary" style="flex:1" (click)="quickSign()">
+      <ion-icon name="flash-outline" slot="start"></ion-icon>
+      快速签名
+    </ion-button>
+  </div>
+
+  <!-- Apple ID 登录 -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+      <div style="width: 40px; height: 40px; border-radius: 20px; background: rgba(0,122,255,0.15); display: flex; align-items: center; justify-content: center;">
+        <ion-icon name="person-outline" style="font-size: 20px; color: #007aff;"></ion-icon>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--ion-text-color);">Apple ID 签名</div>
+        <div style="font-size: 12px; color: var(--ion-color-medium);">免费签名，7天有效期</div>
+      </div>
+      <span *ngIf="savedAppleId" style="font-size: 12px; color: #34c759; font-weight: 600;">✅ 已绑定</span>
+    </div>
+
+    <ion-item lines="full" style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+      <ion-label position="stacked" style="font-size: 13px; font-weight: 500;">Apple ID</ion-label>
+      <ion-input placeholder="example@icloud.com" [(ngModel)]="appleId" type="email" style="font-size: 14px; --padding-top: 8px;"></ion-input>
+    </ion-item>
+    <ion-item lines="none" style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+      <ion-label position="stacked" style="font-size: 13px; font-weight: 500;">密码</ion-label>
+      <ion-input placeholder="输入密码" [(ngModel)]="applePassword" type="password" style="font-size: 14px; --padding-top: 8px;"></ion-input>
+    </ion-item>
+
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <ion-button expand="block" fill="outline" size="small" (click)="saveAppleId()" style="--border-radius: 20px; flex:1;">
+        <ion-icon name="save-outline" slot="start"></ion-icon>
+        保存
+      </ion-button>
+      <ion-button expand="block" fill="outline" size="small" color="danger" (click)="clearAppleId()" style="--border-radius: 20px; flex:1;">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        清除
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- 选择 IPA -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="width: 40px; height: 40px; border-radius: 20px; background: rgba(0,122,255,0.15); display: flex; align-items: center; justify-content: center;">
+        <ion-icon name="cube-outline" style="font-size: 20px; color: #007aff;"></ion-icon>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size: 15px; font-weight: 600; color: var(--ion-text-color);">选择 IPA 文件</div>
+        <div style="font-size: 12px; color: var(--ion-color-medium);" *ngIf="selectedIpa">已选择: {{ selectedIpa.name }}</div>
+        <div style="font-size: 12px; color: var(--ion-color-medium);" *ngIf="!selectedIpa">从已导入的 IPA 中选择</div>
+      </div>
+      <ion-button fill="outline" size="small" (click)="selectIpa()" style="--border-radius: 20px; font-weight: 600;">
+        {{ selectedIpa ? '更换' : '选择' }}
+      </ion-button>
+    </div>
+    <div *ngIf="ipaList.length === 0" style="text-align: center; margin-top: 12px; font-size: 12px; color: var(--ion-color-danger);">
+      暂无已导入的 IPA 文件，请先在「IPA 文件」页面导入
+    </div>
+  </div>
+
+  <!-- 签名配置 -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;">
+    <h3 style="font-size: 15px; font-weight: 600; margin: 0 0 16px 0;">签名配置</h3>
+    <ion-item lines="full" style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+      <ion-label style="font-size: 14px; font-weight: 500;">签名后自动安装</ion-label>
+      <ion-toggle [(ngModel)]="autoInstall" slot="end"></ion-toggle>
+    </ion-item>
+    <ion-item lines="none" style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;">
+      <ion-label style="font-size: 14px; font-weight: 500;">重签名 Bundle ID</ion-label>
+      <ion-toggle [(ngModel)]="changeBundleId" slot="end"></ion-toggle>
+    </ion-item>
+    <ion-item lines="none" style="--background: transparent; --padding-start: 0; --inner-padding-end: 0;" *ngIf="changeBundleId">
+      <ion-input placeholder="com.example.newapp" [(ngModel)]="newBundleId" style="font-size: 14px;"></ion-input>
+    </ion-item>
+  </div>
+
+  <!-- 签名进度 -->
+  <div class="glass-card" style="margin: 0 20px 16px; padding: 20px;" *ngIf="signing">
+    <h3 style="font-size: 15px; font-weight: 600; margin: 0 0 12px 0;">签名进度</h3>
+    <div style="max-width: 100%; height: 6px; background: rgba(0,0,0,0.05); border-radius: 3px; overflow: hidden;">
+      <div style="height: 100%; width: {{ signProgress }}%; background: linear-gradient(90deg, #007aff, #34c759); border-radius: 3px; transition: width 0.5s;"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--ion-color-medium);">
+      <span>{{ signStatus }}</span>
+      <span>{{ signProgress }}%</span>
+    </div>
+  </div>
+
+  <!-- 签名按钮 -->
+  <div style="padding: 0 20px 20px;">
+    <ion-button expand="block" class="ios-btn" color="primary" [disabled]="!selectedIpa || !appleId || !applePassword || signing" (click)="startSign()">
+      <ion-icon name="rocket-outline" slot="start"></ion-icon>
+      {{ signing ? '签名中...' : '开始签名' }}
+    </ion-button>
+  </div>
+
+  <!-- 签名历史 -->
+  <div style="padding: 0 20px 8px;">
+    <h3 style="font-size: 13px; font-weight: 600; color: var(--ion-color-medium); text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px 0;">签名历史</h3>
+  </div>
+
+  <div class="empty-state" *ngIf="signHistory.length === 0" style="padding: 30px 24px;">
+    <ion-icon name="time-outline"></ion-icon>
+    <h3>还没有签名记录</h3>
+    <p>完成签名后记录会显示在这里，可安装已签名应用</p>
+  </div>
+
+  <ion-list lines="none" *ngIf="signHistory.length > 0" style="padding-bottom: 80px;">
+    <div class="file-item" *ngFor="let item of signHistory; let i = index">
+      <div class="file-icon" style="background: rgba(52,199,89,0.15);">
+        <ion-icon name="checkmark-circle-outline" style="color:#34c759;"></ion-icon>
+      </div>
+      <div class="file-info">
+        <div class="name">{{ item.name }}</div>
+        <div class="meta">
+          <span class="status-badge success">已签名</span>
+          {{ item.date }}
+        </div>
+      </div>
+      <div class="file-action">
+        <ion-button fill="clear" size="small" (click)="installApp(item)">
+          <ion-icon name="download-outline" slot="icon-only" color="success"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </ion-list>
+</ion-content>
