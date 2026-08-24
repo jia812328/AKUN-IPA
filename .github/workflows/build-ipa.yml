@@ -28,15 +28,10 @@ jobs:
         with:
           xcode-version: '26.6'
 
-      - name: Add iOS platform
-        run: npx cap add ios
-
-      - name: Run CocoaPods
-        working-directory: ios/App
-        run: pod install
-
-      - name: Create export plist
+      - name: Build IPA
         run: |
+          npx cap add ios
+          cd ios/App && pod install
           cat > ios/App/exportPlist.plist << 'PLISTEOF'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -51,9 +46,6 @@ jobs:
           </dict>
           </plist>
           PLISTEOF
-
-      - name: Build IPA
-        run: |
           npx cap sync ios
           cd ios/App
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive archive
